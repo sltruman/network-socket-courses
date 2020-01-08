@@ -1,0 +1,14 @@
+Geode {
+  nodeMask 0xffffffff
+  cullingActive TRUE
+  num_drawables 1
+  ShapeDrawable {
+    Sphere {
+      Center 0 0 0
+      Radius 0.3
+    }
+    useDisplayList TRUE
+    useVertexBufferObjects FALSE
+    color 1 1 1 1
+  }
+}

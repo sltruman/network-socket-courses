@@ -1,0 +1,4 @@
+#ifndef SERVEROFEPOLL_H
+#define SERVEROFEPOLL_H
+
+#endif // SERVEROFEPOLL_H

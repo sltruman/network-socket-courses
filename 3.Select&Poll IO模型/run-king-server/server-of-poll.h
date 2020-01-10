@@ -1,11 +1,9 @@
-#ifndef SERVEROFPOOL_H
-#define SERVEROFPOOL_H
-
-#ifndef SERVEROFSELECT_H
-#define SERVEROFSELECT_H
+#ifndef SERVEROFPOLL_H
+#define SERVEROFPOLL_H
 
 #include <iostream>
 #include <list>
+#include <vector>
 #include <map>
 #include <mutex>
 #include <thread>
@@ -16,7 +14,7 @@ using namespace std;
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <sys/errno.h>
-#include <sys/select.h>
+#include <sys/poll.h>
 #include <netinet/in.h>
 
 namespace of_poll {
@@ -71,9 +69,11 @@ namespace of_poll {
     }
 
     void server(unsigned short port) {
-        list<int> fds,fds_removed;
+        vector<pollfd> pfds;
+
         int fd_self = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        fds.push_back(fd_self);
+        pollfd pfd = {fd_self,POLL_IN|POLL_PRI,0};
+        pfds.push_back(pfd);
 
         int tmp = 1;
         setsockopt(fd_self, SOL_SOCKET, SO_REUSEADDR, &tmp, sizeof(int));
@@ -87,34 +87,27 @@ namespace of_poll {
         if(-1 == bind(fd_self, reinterpret_cast<sockaddr*>(&addr_s), sizeof(sockaddr))) goto RET;
         if(-1 == listen(fd_self, 1024)) goto RET;
 
-        fd_set fds_readable;
+        for(int fd_max = fd_self;;) {
+            if(-1 == poll(pfds.data(),pfds.size(),-1)) goto RET;
 
-        while(true) {
-            FD_ZERO(&fds_readable);
-
-            int fd_max = 0;
-            for(auto fd : fds) {
-                FD_SET(fd,&fds_readable);
-                fd_max = max(fd,fd_max);
-            }
-
-            if(-1 == select(fd_max + 1,&fds_readable,nullptr,nullptr,nullptr)) goto RET;
-
-            for(auto it=fds.begin();it != fds.end();it++) {
-                auto fd = *it;
-                if(!FD_ISSET(fd,&fds_readable)) continue;
-                if(fd == fd_self) {
-                    auto fd = accept(fd_self, reinterpret_cast<sockaddr*>(&addr_c), &addr_c_len);
-                    if(fd == -1) goto RET;
-                    cout << "new:" << fd << endl;
-                    fds.push_back(fd);
+            for(auto it=pfds.begin();it != pfds.end();it++) {
+                if(0 == it->revents) continue;
+                it->revents = 0;
+                if(it->fd == fd_self) {
+                    auto fd_new = accept(fd_self, reinterpret_cast<sockaddr*>(&addr_c), &addr_c_len);
+                    if(fd_new == -1) goto RET;
+                    cout << "new:" << fd_new << endl;
+                    fd_max = max(fd_new,fd_max);
+                    pfd = {fd_new,POLL_IN|POLL_PRI,0};
+                    pfds.push_back(pfd);
                     continue;
                 }
 
-                cout << "active:" << fd << endl;
-                if(!task(fd)) continue;
-                close(fd);
-                it = --fds.erase(it);
+                cout << "active:" << it->fd << endl;
+                if(!task(it->fd)) continue;
+                close(it->fd);
+                cout << "close:" << it->fd << endl;
+                it = --pfds.erase(it);
             }
         }
 
@@ -124,6 +117,3 @@ namespace of_poll {
 }
 
 #endif // SERVEROFSELECT_H
-
-
-#endif // SERVEROFPOOL_H

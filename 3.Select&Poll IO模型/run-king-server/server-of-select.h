@@ -68,7 +68,7 @@ namespace of_select {
     }
 
     void server(unsigned short port) {
-        list<int> fds,fds_removed;
+        list<int> fds;
         int fd_self = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         fds.push_back(fd_self);
 
@@ -101,16 +101,17 @@ namespace of_select {
                 auto fd = *it;
                 if(!FD_ISSET(fd,&fds_readable)) continue;
                 if(fd == fd_self) {
-                    auto fd = accept(fd_self, reinterpret_cast<sockaddr*>(&addr_c), &addr_c_len);
-                    if(fd == -1) goto RET;
-                    cout << "new:" << fd << endl;
-                    fds.push_back(fd);
+                    auto fd_new = accept(fd_self, reinterpret_cast<sockaddr*>(&addr_c), &addr_c_len);
+                    if(fd_new == -1) goto RET;
+                    cout << "new:" << fd_new << endl;
+                    fds.push_back(fd_new);
                     continue;
                 }
 
                 cout << "active:" << fd << endl;
                 if(!task(fd)) continue;
                 close(fd);
+                cout << "close:" << fd << endl;
                 it = --fds.erase(it);
             }
         }

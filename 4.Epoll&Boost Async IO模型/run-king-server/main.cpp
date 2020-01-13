@@ -13,7 +13,9 @@ int main()
     thread(of_select::server,6000).detach();
     thread(of_poll::server,6001).detach();
     thread(of_epoll::server,6002).detach();
+    thread(of_asio::server,6003).detach();
 
     getchar();
     return 0;
 }
+

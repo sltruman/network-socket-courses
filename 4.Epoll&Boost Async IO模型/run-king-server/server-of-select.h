@@ -4,8 +4,6 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <mutex>
-#include <thread>
 using namespace std;
 
 #include <unistd.h>

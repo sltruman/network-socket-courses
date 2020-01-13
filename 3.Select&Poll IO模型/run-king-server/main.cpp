@@ -7,6 +7,6 @@ using namespace std;
 int main()
 {
     of_select::server(6000);
-    //of_poll::server(6001);
+    of_poll::server(6001);
     return 0;
 }

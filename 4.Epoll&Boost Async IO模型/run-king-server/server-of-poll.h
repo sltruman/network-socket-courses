@@ -2,11 +2,8 @@
 #define SERVEROFPOLL_H
 
 #include <iostream>
-#include <list>
 #include <vector>
 #include <map>
-#include <mutex>
-#include <thread>
 using namespace std;
 
 #include <unistd.h>

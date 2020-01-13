@@ -1,13 +1,9 @@
 #ifndef SERVEROFEPOLL_H
 #define SERVEROFEPOLL_H
 
-
 #include <iostream>
-#include <list>
 #include <vector>
 #include <map>
-#include <mutex>
-#include <thread>
 using namespace std;
 
 #include <unistd.h>
@@ -127,6 +123,5 @@ namespace of_epoll {
         close(fd_self);
     }
 }
-
 
 #endif // SERVEROFEPOLL_H

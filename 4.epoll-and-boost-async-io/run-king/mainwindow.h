@@ -33,14 +33,13 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    bool send(QTcpSocket*);
+    bool receive(QTcpSocket*);
+    bool isDisconnected;
+
 private slots:
-    void connected();
-    void readyRead();
-    void error(QAbstractSocket::SocketError);
-
     void on_pushButton_connect_clicked();
-
-    void on_pushButton_clicked();
+    void on_pushButton_disconnect_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -55,7 +54,7 @@ private:
     Shadow* sp;
     Controls* cp;
     Observer* op;
-    QMap<QTcpSocket*,bool> tcpList;
+    QList<QTcpSocket*> tcpList;
 };
 
 #endif // MAINWINDOW_H

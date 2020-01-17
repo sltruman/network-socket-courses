@@ -32,23 +32,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::error(QAbstractSocket::SocketError e) {
-    std::cout << "errno:" << e << std::endl;
-
-    for(auto tcp : tcpList.keys()) {
-        if(!tcp->isValid() || !tcp->waitForConnected(0)) {
-            disconnect(tcp, SIGNAL(connected()), this, SLOT(connected()));
-            disconnect(tcp, SIGNAL(readyRead()), this, SLOT(readyRead()));
-            disconnect(tcp, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(error(QAbstractSocket::SocketError)));
-            tcp->disconnectFromHost();
-            tcp->reset();
-            tcpList.remove(tcp);
-            delete tcp;
-            QApplication::processEvents();
-        }
-    }
-}
-
 enum msg_type { run,peek };
 
 struct msg {
@@ -57,44 +40,46 @@ struct msg {
     unsigned int steps;
 };
 
-void MainWindow::connected() {
-    for(auto tcp : tcpList.keys()) {
-        auto hasWritten = tcpList[tcp];
-        if(!tcp->waitForConnected(0)) continue;
-        if(hasWritten) continue;
+bool MainWindow::send(QTcpSocket* tcp) {
 
-        msg req;
-        req.flag = msg_type::peek;
-        tcp->write(reinterpret_cast<char*>(&req),sizeof(req));
-        tcpList[tcp] = true;
+    while(!tcp->waitForConnected(1000)) {
+        if(QAbstractSocket::UnconnectedState == tcp->state()) return false;
+        QApplication::processEvents();
     }
+
+    msg req;
+    req.flag = msg_type::peek;
+    if(-1 == tcp->write(reinterpret_cast<char*>(&req),sizeof(req))) return false;
+    return true;
 }
 
-void MainWindow::readyRead() {
+bool MainWindow::receive(QTcpSocket *tcp) {
+    while(!tcp->waitForReadyRead(1000)) {
+        QApplication::processEvents();
+        if(QAbstractSocket::UnconnectedState == tcp->state()) return false;
+    }
+
+    int runnerNum = 0;
+
+    for(int j=0;j < 4;) {
+        auto len = tcp->read(reinterpret_cast<char*>(&runnerNum) + j,4 - j);
+        if(len == -1) return false;
+        j += len;
+        QApplication::processEvents();
+    }
+
     QList<msg> runnerList;
-    for(auto tcp : tcpList.keys()) {
-        auto hasWritten = tcpList[tcp];
-        if(0 == tcp->bytesAvailable()) continue;
-        if(!hasWritten) continue;
-
-        int runnerNum = 0;
-
-        for(int j=0;j < 4;) {
-            j += tcp->read(reinterpret_cast<char*>(&runnerNum) + j,4 - j);
+    msg res;
+    for(int i=0;i < runnerNum;i++) {
+        for(int j=0;j < sizeof(res);) {
+            auto len = tcp->read(reinterpret_cast<char*>(&res) + j,sizeof(res) - j);
+            if(len == -1) return false;
+            j += len;
             QApplication::processEvents();
         }
-
-        msg res;
-        for(int i=0;i < runnerNum;i++) {
-            for(int j=0;j < sizeof(res);) {
-                j += tcp->read(reinterpret_cast<char*>(&res) + j,sizeof(res) - j);
-                runnerList.push_back(res);
-                QApplication::processEvents();
-            }
-        }
-
-        tcpList[tcp] = false;
+        runnerList.push_back(res);
     }
+
 
     for(auto r : runnerList) {
         vec3 pos(3);
@@ -116,37 +101,44 @@ void MainWindow::readyRead() {
     }
 
     bp->Bubbles(true);
-
-    connected();
+    return true;
 }
 
-
-void MainWindow::on_pushButton_connect_clicked()
-{
-    for(auto server : ui->lineEdit_servers->text().trimmed().split(' ')) {
-        auto address = server.split(':');
+void MainWindow::on_pushButton_connect_clicked() {
+    isDisconnected = false;
+    for(auto server : ui->lineEdit_servers->text().trimmed().split(QRegExp("\\s+"))) {
+        auto address = server.split(QRegExp(":"));
         auto tcp = new QTcpSocket(this);
-
-        connect(tcp, SIGNAL(connected()), this, SLOT(connected()));
-        connect(tcp, SIGNAL(readyRead()), this, SLOT(readyRead()));
-        connect(tcp, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(error(QAbstractSocket::SocketError)));
-
         tcp->connectToHost(address[0].trimmed(),address[1].trimmed().toUShort());
-        tcpList[tcp] = false;
+        tcpList.push_back(tcp);
+    }
+
+    for(auto it = tcpList.begin();!isDisconnected;it++) {
+        if(it == tcpList.end()) it = tcpList.begin();
+        auto tcp = *it;
+
+        if(!send(tcp) || !receive(tcp)) {
+            tcp->reset();
+            --tcpList.erase(it);
+            delete tcp;
+            continue;
+        }
+
+        QApplication::processEvents();
+    }
+
+    for(auto it = tcpList.begin();it != tcpList.end();it++) {
+        auto tcp = *it;
+
+        tcp->disconnectFromHost();
+        --tcpList.erase(it);
+        delete tcp;
+
         QApplication::processEvents();
     }
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::on_pushButton_disconnect_clicked()
 {
-    for(auto tcp : tcpList.keys()) {
-        disconnect(tcp, SIGNAL(connected()), this, SLOT(connected()));
-        disconnect(tcp, SIGNAL(readyRead()), this, SLOT(readyRead()));
-        disconnect(tcp, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(error(QAbstractSocket::SocketError)));
-        tcp->disconnectFromHost();
-        tcp->reset();
-        tcpList.remove(tcp);
-        delete tcp;
-        QApplication::processEvents();
-    }
+    isDisconnected = true;
 }

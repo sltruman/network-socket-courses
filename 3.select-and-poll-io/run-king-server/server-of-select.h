@@ -2,7 +2,7 @@
 #define SERVEROFSELECT_H
 
 #include <iostream>
-#include <vector>
+#include <list>
 #include <map>
 using namespace std;
 
@@ -39,7 +39,7 @@ namespace of_select {
 
         switch(req.flag) {
         case 0:{
-            cout << "run:" << endl;
+            cout << "run:" << req.steps << endl;
             req.steps++;
             status[req.id] = req.steps;
             if(-1 == send(fd,&req,sizeof(req),0)) goto RET;
@@ -66,7 +66,9 @@ namespace of_select {
     }
 
     void server(unsigned short port) {
-        vector<int> fds;
+        list<int> fds;
+        fd_set fds_readable;
+
         int fd_self = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         fds.push_back(fd_self);
 
@@ -82,8 +84,6 @@ namespace of_select {
         if(-1 == bind(fd_self, reinterpret_cast<sockaddr*>(&addr_s), sizeof(sockaddr))) goto RET;
         if(-1 == listen(fd_self, 1024)) goto RET;
 
-        fd_set fds_readable;
-
         while(true) {
             FD_ZERO(&fds_readable);
 
@@ -93,21 +93,22 @@ namespace of_select {
                 fd_max = max(fd,fd_max);
             }
 
-            auto num = select(fd_max + 1,&fds_readable,nullptr,nullptr,nullptr);
-            if(-1 == num) goto RET;
+            if(-1 == select(fd_max + 1,&fds_readable,nullptr,nullptr,nullptr)) goto RET;
 
-            for(auto it=fds.begin();it != fds.end() && num > 0;it++,num--) {
+            for(auto it=fds.begin();it != fds.end();it++) {
                 auto fd = *it;
                 if(!FD_ISSET(fd,&fds_readable)) continue;
                 if(fd == fd_self) {
                     auto fd_new = accept(fd_self, reinterpret_cast<sockaddr*>(&addr_c), &addr_c_len);
-                    if(fd_new == -1) goto RET;
+                    if(fd_new == -1) {
+                        cout << "accept:" << errno << endl;
+                        goto RET;
+                    }
                     cout << "new:" << fd_new << endl;
                     fds.push_back(fd_new);
                     continue;
                 }
 
-                cout << "active:" << fd << endl;
                 if(!task(fd)) continue;
                 close(fd);
                 cout << "close:" << fd << endl;

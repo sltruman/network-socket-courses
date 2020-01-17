@@ -1,11 +1,10 @@
-#ifndef SERVEROFSELECT_H
-#define SERVEROFSELECT_H
+#ifndef SERVEROFPOLL_H
+#define SERVEROFPOLL_H
 
 #include <iostream>
+#include <vector>
 #include <list>
 #include <map>
-#include <mutex>
-#include <thread>
 using namespace std;
 
 #include <unistd.h>
@@ -13,10 +12,10 @@ using namespace std;
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <sys/errno.h>
-#include <sys/select.h>
+#include <sys/poll.h>
 #include <netinet/in.h>
 
-namespace of_select {
+namespace of_poll {
     static struct msg {
         int flag;
         char id[24];
@@ -41,7 +40,7 @@ namespace of_select {
 
         switch(req.flag) {
         case 0:{
-            cout << "run:" << endl;
+            cout << "run:" << req.steps << endl;
             req.steps++;
             status[req.id] = req.steps;
             if(-1 == send(fd,&req,sizeof(req),0)) goto RET;
@@ -69,6 +68,8 @@ namespace of_select {
 
     void server(unsigned short port) {
         list<int> fds;
+        vector<pollfd> fds_readable;
+
         int fd_self = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         fds.push_back(fd_self);
 
@@ -84,35 +85,32 @@ namespace of_select {
         if(-1 == bind(fd_self, reinterpret_cast<sockaddr*>(&addr_s), sizeof(sockaddr))) goto RET;
         if(-1 == listen(fd_self, 1024)) goto RET;
 
-        fd_set fds_readable;
-
         while(true) {
-            FD_ZERO(&fds_readable);
+            fds_readable.clear();
 
-            int fd_max = 0;
-            for(auto fd : fds) {
-                FD_SET(fd,&fds_readable);
-                fd_max = max(fd,fd_max);
-            }
+            for(auto fd : fds)
+                fds_readable.push_back({fd,POLL_IN,0});
 
-            if(-1 == select(fd_max + 1,&fds_readable,nullptr,nullptr,nullptr)) goto RET;
+            if(-1 == poll(fds_readable.data(),fds_readable.size(),-1)) goto RET;
 
-            for(auto it=fds.begin();it != fds.end();it++) {
-                auto fd = *it;
-                if(!FD_ISSET(fd,&fds_readable)) continue;
-                if(fd == fd_self) {
+            for(auto p : fds_readable) {
+                if(0 == p.revents) continue;
+
+                if(p.fd == fd_self) {
                     auto fd_new = accept(fd_self, reinterpret_cast<sockaddr*>(&addr_c), &addr_c_len);
-                    if(fd_new == -1) goto RET;
+                    if(fd_new == -1) {
+                        cout << "accept:" << errno << endl;
+                        goto RET;
+                    }
                     cout << "new:" << fd_new << endl;
                     fds.push_back(fd_new);
                     continue;
                 }
 
-                cout << "active:" << fd << endl;
-                if(!task(fd)) continue;
-                close(fd);
-                cout << "close:" << fd << endl;
-                it = --fds.erase(it);
+                if(!task(p.fd)) continue;
+                close(p.fd);
+                cout << "close:" << p.fd << endl;
+                fds.remove(p.fd);
             }
         }
 

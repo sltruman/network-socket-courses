@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <list>
 #include <map>
 using namespace std;
 
@@ -39,7 +40,7 @@ namespace of_poll {
 
         switch(req.flag) {
         case 0:{
-            cout << "run:" << endl;
+            cout << "run:" << req.steps << endl;
             req.steps++;
             status[req.id] = req.steps;
             if(-1 == send(fd,&req,sizeof(req),0)) goto RET;
@@ -66,11 +67,11 @@ namespace of_poll {
     }
 
     void server(unsigned short port) {
-        vector<pollfd> fds;
+        list<int> fds;
+        vector<pollfd> fds_readable;
 
         int fd_self = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        pollfd fd = {fd_self,POLL_IN,0};
-        fds.push_back(fd);
+        fds.push_back(fd_self);
 
         int tmp = 1;
         setsockopt(fd_self, SOL_SOCKET, SO_REUSEADDR, &tmp, sizeof(int));
@@ -84,28 +85,32 @@ namespace of_poll {
         if(-1 == bind(fd_self, reinterpret_cast<sockaddr*>(&addr_s), sizeof(sockaddr))) goto RET;
         if(-1 == listen(fd_self, 1024)) goto RET;
 
-        for(int fd_max = fd_self;;) {
-            auto num = poll(fds.data(),fds.size(),-1);
-            if(-1 == num) goto RET;
+        while(true) {
+            fds_readable.clear();
 
-            for(auto it=fds.begin();it != fds.end() && num > 0;it++,num--) {
-                if(0 == it->revents) continue;
-                it->revents = 0;
-                if(it->fd == fd_self) {
+            for(auto fd : fds)
+                fds_readable.push_back({fd,POLL_IN,0});
+
+            if(-1 == poll(fds_readable.data(),fds_readable.size(),-1)) goto RET;
+
+            for(auto p : fds_readable) {
+                if(0 == p.revents) continue;
+
+                if(p.fd == fd_self) {
                     auto fd_new = accept(fd_self, reinterpret_cast<sockaddr*>(&addr_c), &addr_c_len);
-                    if(fd_new == -1) goto RET;
+                    if(fd_new == -1) {
+                        cout << "accept:" << errno << endl;
+                        goto RET;
+                    }
                     cout << "new:" << fd_new << endl;
-                    fd_max = max(fd_new,fd_max);
-                    fd = {fd_new,POLL_IN,0};
-                    fds.push_back(fd);
+                    fds.push_back(fd_new);
                     continue;
                 }
 
-                cout << "active:" << it->fd << endl;
-                if(!task(it->fd)) continue;
-                close(it->fd);
-                cout << "close:" << it->fd << endl;
-                it = --fds.erase(it);
+                if(!task(p.fd)) continue;
+                close(p.fd);
+                cout << "close:" << p.fd << endl;
+                fds.remove(p.fd);
             }
         }
 

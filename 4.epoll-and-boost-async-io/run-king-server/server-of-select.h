@@ -1,8 +1,8 @@
-#ifndef SERVEROFEPOLL_H
-#define SERVEROFEPOLL_H
+#ifndef SERVEROFSELECT_H
+#define SERVEROFSELECT_H
 
 #include <iostream>
-#include <vector>
+#include <list>
 #include <map>
 using namespace std;
 
@@ -11,10 +11,10 @@ using namespace std;
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <sys/errno.h>
-#include <sys/epoll.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 
-namespace of_epoll {
+namespace of_select {
     static struct msg {
         int flag;
         char id[24];
@@ -39,7 +39,7 @@ namespace of_epoll {
 
         switch(req.flag) {
         case 0:{
-            cout << "run:" << endl;
+            cout << "run:" << req.steps << endl;
             req.steps++;
             status[req.id] = req.steps;
             if(-1 == send(fd,&req,sizeof(req),0)) goto RET;
@@ -66,16 +66,11 @@ namespace of_epoll {
     }
 
     void server(unsigned short port) {
-        vector<epoll_event> fds;
+        list<int> fds;
+        fd_set fds_readable;
 
         int fd_self = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        auto epfd = epoll_create1(0);
-
-        epoll_event fd;
-        fd.data.fd = fd_self;
-        fd.events = EPOLLIN;
-        fds.push_back(fd);
-        epoll_ctl(epfd,EPOLL_CTL_ADD,fd_self,&fds.back());
+        fds.push_back(fd_self);
 
         int tmp = 1;
         setsockopt(fd_self, SOL_SOCKET, SO_REUSEADDR, &tmp, sizeof(int));
@@ -89,32 +84,34 @@ namespace of_epoll {
         if(-1 == bind(fd_self, reinterpret_cast<sockaddr*>(&addr_s), sizeof(sockaddr))) goto RET;
         if(-1 == listen(fd_self, 1024)) goto RET;
 
-        for(;;) {
-            auto num = epoll_wait(epfd,fds.data(),fds.size(),-1);
-            if(-1 == num) goto RET;
+        while(true) {
+            FD_ZERO(&fds_readable);
 
-            for(auto it=fds.begin();num > 0;it++,num--) {
-                if(it->data.fd == fd_self) {
+            int fd_max = 0;
+            for(auto fd : fds) {
+                FD_SET(fd,&fds_readable);
+                fd_max = max(fd,fd_max);
+            }
+
+            if(-1 == select(fd_max + 1,&fds_readable,nullptr,nullptr,nullptr)) goto RET;
+
+            for(auto it=fds.begin();it != fds.end();it++) {
+                auto fd = *it;
+                if(!FD_ISSET(fd,&fds_readable)) continue;
+                if(fd == fd_self) {
                     auto fd_new = accept(fd_self, reinterpret_cast<sockaddr*>(&addr_c), &addr_c_len);
-                    if(fd_new == -1) goto RET;
+                    if(fd_new == -1) {
+                        cout << "accept:" << errno << endl;
+                        goto RET;
+                    }
                     cout << "new:" << fd_new << endl;
-
-                    fd.data.fd = fd_new;
-                    fd.events = EPOLLIN;
-                    fds.push_back(fd);
-                    epoll_ctl(epfd,EPOLL_CTL_ADD,fd_new,&fds.back());
+                    fds.push_back(fd_new);
                     continue;
                 }
 
-                cout << "active:" << it->data.fd << endl;
-                if(!task(it->data.fd)) continue;
-                close(it->data.fd);
-
-                fd.data.fd = it->data.fd;
-                fd.events = EPOLLIN;
-                epoll_ctl(epfd,EPOLL_CTL_DEL,it->data.fd,&fd);
-
-                cout << "close:" << it->data.fd << endl;
+                if(!task(fd)) continue;
+                close(fd);
+                cout << "close:" << fd << endl;
                 it = --fds.erase(it);
             }
         }
@@ -124,4 +121,4 @@ namespace of_epoll {
     }
 }
 
-#endif // SERVEROFEPOLL_H
+#endif // SERVEROFSELECT_H

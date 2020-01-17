@@ -30,13 +30,19 @@ namespace of_asio {
 
         void start() {
             auto self(shared_from_this());
-            send = [=](system::error_code ec, size_t len) {};
-            receive = [=](system::error_code ec, size_t len) {
-                if(ec) return;
+            send = [this,self](system::error_code ec, size_t len) {
+                fd.close();
+            };
+            receive = [this,self](system::error_code ec, size_t len) {
+                if(ec) {
+                    cout << "close:" << fd.native_handle() << endl;
+                    fd.close();
+                    return;
+                }
 
                 switch(req.flag) {
                 case 0:{
-                    cout << "run:" << endl;
+                    cout << "run:" << req.steps << endl;
                     req.steps++;
                     status[req.id] = req.steps;
                     async_write(fd,buffer(&req,sizeof(req)),send);
@@ -70,7 +76,10 @@ namespace of_asio {
         tcp::acceptor server(ios,tcp::endpoint(tcp::v4(),port));
 
         task = [&](system::error_code ec,tcp::socket fd) {
-            if(ec) return;
+            if(ec) {
+                cout << "accept:" << ec.message() << endl;
+                return;
+            }
             cout << "new:" << fd.native_handle() << endl;
             make_shared<session>(move(fd))->start();
             server.async_accept(task);

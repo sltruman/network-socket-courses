@@ -33,9 +33,10 @@ namespace of_asio {
             send = [this,self](system::error_code ec, size_t len) {
                 fd.close();
             };
+
             receive = [this,self](system::error_code ec, size_t len) {
                 if(ec) {
-                    cout << "close:" << fd.native_handle() << endl;
+                    cout << "close:" << fd.native_handle() << ' ' << ec.message() << endl;
                     fd.close();
                     return;
                 }
@@ -51,15 +52,27 @@ namespace of_asio {
                     auto runner_num = status.size();
                     cout << "peek:" << runner_num << endl;
 
-                    async_write(fd,buffer(&runner_num,4),send);
+                    async_write(fd,buffer(&runner_num,4),[this,self](system::error_code ec, size_t len) {
+                        if(ec) {
+                            cout << "close:" << fd.native_handle() << ' ' << ec.message() << endl;
+                            fd.close();
+                            return;
+                        }
+                    });
                     for(auto& kv : status) {
                         fill_n(res.id,24,0);
                         kv.first.copy(res.id,kv.first.size(),0);
                         res.steps = kv.second;
-                        async_write(fd,buffer(&res,sizeof(res)),send);
+                        async_write(fd,buffer(&res,sizeof(res)),[this,self](system::error_code ec, size_t len) {
+                            if(ec) {
+                                cout << "close:" << fd.native_handle() << ' ' << ec.message() << endl;
+                                fd.close();
+                                return;
+                            }
+                        });
+
                         cout << res.id << ' ' << res.steps << endl;
                     }
-
                     async_read(fd,buffer(reinterpret_cast<char*>(&req),sizeof(req)),receive);
                     break;}
                 }
@@ -69,23 +82,24 @@ namespace of_asio {
         }
     };
 
-    static function<void(system::error_code ec,tcp::socket fd)> task;
+    static function<void(system::error_code ec)> task;
 
     void server(unsigned short port) {
         io_service ios;
+        tcp::socket fd_new(ios);
         tcp::acceptor server(ios,tcp::endpoint(tcp::v4(),port));
 
-        task = [&](system::error_code ec,tcp::socket fd) {
+        task = [&](system::error_code ec) {
             if(ec) {
                 cout << "accept:" << ec.message() << endl;
                 return;
             }
-            cout << "new:" << fd.native_handle() << endl;
-            make_shared<session>(move(fd))->start();
-            server.async_accept(task);
+            cout << "new:" << fd_new.native_handle() << endl;
+            make_shared<session>(move(fd_new))->start();
+            server.async_accept(fd_new,task);
         };
 
-        server.async_accept(task);
+        server.async_accept(fd_new,task);
         ios.run();
     }
 }

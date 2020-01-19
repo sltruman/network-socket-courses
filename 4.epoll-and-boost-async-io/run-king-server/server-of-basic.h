@@ -18,20 +18,21 @@ using namespace std;
 #include <netinet/in.h>
 
 namespace of_basic {
-    static struct msg {
+    struct msg {
         int flag;
         char id[24];
         unsigned int steps;
-    } req,res;
+    };
 
     static mutex m;
     static map<string,unsigned int> status;
 
     void task(int fd) {
+         msg req;
 BEGIN:
         for(int j=0;j < sizeof(req);) {
-            auto len = recv(fd,&req + j,sizeof(req) - j,0);
-            if(len == -1 || len == 0) goto RET;
+            auto len = recv(fd,reinterpret_cast<char*>(&req) + j,sizeof(req) - j,MSG_NOSIGNAL);
+            if(len <= 0) goto RET;
             j += len;
         }
 
@@ -41,19 +42,20 @@ BEGIN:
             cout << "run:" << req.steps << endl;
             req.steps++;
             status[req.id] = req.steps;
-            if(-1 == send(fd,&req,sizeof(req),0)) goto RET;
+            if(-1 == send(fd,&req,sizeof(req),MSG_NOSIGNAL)) goto RET;
             break;}
         default:{
+            msg res;
             lock_guard<mutex> lock(m);
             auto runner_num = status.size();
             cout << "peek:" << runner_num << endl;
 
-            if(-1 == send(fd,&runner_num,4,0)) goto RET;
+            if(-1 == send(fd,&runner_num,4,MSG_NOSIGNAL)) goto RET;
             for(auto& kv : status) {
                 fill_n(res.id,24,0);
                 kv.first.copy(res.id,kv.first.size(),0);
                 res.steps = kv.second;
-                if(-1 == send(fd,&res,sizeof(res),0)) goto RET;
+                if(-1 == send(fd,&res,sizeof(res),MSG_NOSIGNAL)) goto RET;
                 cout << res.id << ' ' << res.steps << endl;
             }
 

@@ -29,9 +29,8 @@ namespace of_select {
         auto& req = kv.first;
         auto& offset = kv.second;
 
-        auto len = recv(fd,reinterpret_cast<char*>(&req) + offset,sizeof(req) - offset,0);
-        if(len == -1) goto RET;
-        if(len == 0) goto RET;
+        auto len = recv(fd,reinterpret_cast<char*>(&req) + offset,sizeof(req) - offset,MSG_NOSIGNAL);
+        if(len <= 0) goto RET;
 
         offset += len;
         if(offset == sizeof(req)) offset = 0;
@@ -42,7 +41,7 @@ namespace of_select {
             cout << "run:" << req.steps << endl;
             req.steps++;
             status[req.id] = req.steps;
-            if(-1 == send(fd,&req,sizeof(req),0)) goto RET;
+            if(-1 == send(fd,&req,sizeof(req),MSG_NOSIGNAL)) goto RET;
             break;}
         default:{
             auto runner_num = status.size();
@@ -53,7 +52,7 @@ namespace of_select {
                 fill_n(res.id,24,0);
                 kv.first.copy(res.id,kv.first.size(),0);
                 res.steps = kv.second;
-                if(-1 == send(fd,&res,sizeof(res),0)) goto RET;
+                if(-1 == send(fd,&res,sizeof(res),MSG_NOSIGNAL)) goto RET;
                 cout << res.id << ' ' << res.steps << endl;
             }
 

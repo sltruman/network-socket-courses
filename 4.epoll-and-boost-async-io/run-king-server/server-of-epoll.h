@@ -30,9 +30,8 @@ namespace of_epoll {
         auto& req = kv.first;
         auto& offset = kv.second;
 
-        auto len = recv(fd,reinterpret_cast<char*>(&req) + offset,sizeof(req) - offset,0);
-        if(len == -1) goto RET;
-        if(len == 0) goto RET;
+        auto len = recv(fd,reinterpret_cast<char*>(&req) + offset,sizeof(req) - offset,MSG_NOSIGNAL);
+        if(len <= 0) goto RET;
 
         offset += len;
         if(offset == sizeof(req)) offset = 0;
@@ -43,7 +42,7 @@ namespace of_epoll {
             cout << "run:" << req.steps << endl;
             req.steps++;
             status[req.id] = req.steps;
-            if(-1 == send(fd,&req,sizeof(req),0)) goto RET;
+            if(-1 == send(fd,&req,sizeof(req),MSG_NOSIGNAL)) goto RET;
             break;}
         default:{
             auto runner_num = status.size();
@@ -54,7 +53,7 @@ namespace of_epoll {
                 fill_n(res.id,24,0);
                 kv.first.copy(res.id,kv.first.size(),0);
                 res.steps = kv.second;
-                if(-1 == send(fd,&res,sizeof(res),0)) goto RET;
+                if(-1 == send(fd,&res,sizeof(res),MSG_NOSIGNAL)) goto RET;
                 cout << res.id << ' ' << res.steps << endl;
             }
 
@@ -67,11 +66,10 @@ namespace of_epoll {
     }
 
     void server(unsigned short port) {
-        list<int> fds;
-        vector<epoll_event> fds_readable;
+        vector<epoll_event> fds;
 
         int fd_self = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        fds.push_back(fd_self);
+        int fds_num = 1;
 
         auto epfd = epoll_create1(0);
 
@@ -93,11 +91,11 @@ namespace of_epoll {
         if(-1 == listen(fd_self, 1024)) goto RET;
 
         while(true) {
-            fds_readable.resize(fds.size());
-            auto num = epoll_wait(epfd,fds_readable.data(),fds.size(),-1);
+            fds.resize(fds_num);
+            auto num = epoll_wait(epfd,fds.data(),fds_num,-1);
             if(-1 == num) goto RET;
 
-            for(auto it=fds_readable.begin();num > 0;it++,num--) {
+            for(auto it=fds.begin();num > 0;it++,num--) {
                 if(it->data.fd == fd_self) {
                     auto fd_new = accept(fd_self, reinterpret_cast<sockaddr*>(&addr_c), &addr_c_len);
                     if(fd_new == -1) {
@@ -105,7 +103,7 @@ namespace of_epoll {
                         goto RET;
                     }
                     cout << "new:" << fd_new << endl;
-                    fds.push_back(fd_new);
+                    fds_num++;
 
                     event.data.fd = fd_new;
                     event.events = EPOLLIN;
@@ -121,7 +119,7 @@ namespace of_epoll {
                 epoll_ctl(epfd,EPOLL_CTL_DEL,it->data.fd,&event);
 
                 cout << "close:" << it->data.fd << endl;
-                fds.remove(it->data.fd);
+                fds_num--;
             }
         }
 

@@ -51,11 +51,7 @@ END_RUNING:
     return true;
 };
 
-static auto score = 0;
-static mutex m;
-
 auto runner = [](string server,unsigned short port,int i,int steps,int ms) {
-    auto t = clock();
     stringstream id;
     id << server << ':' << port << ' ' << i;
     msg req = { run ,'\0',0};
@@ -65,9 +61,6 @@ auto runner = [](string server,unsigned short port,int i,int steps,int ms) {
         run_a_step(server,port,req);
         this_thread::sleep_for(chrono::milliseconds(ms));
     }
-
-    lock_guard<mutex> lock(m);
-    score += clock() - t;
 };
 
 int main(int argc,char* argv[]) {
@@ -97,8 +90,6 @@ int main(int argc,char* argv[]) {
     for(auto& t : ts) {
         t.join();
     }
-
-    cout << ip << ':' << port << ' ' << score << endl;
 
     return 0;
 }

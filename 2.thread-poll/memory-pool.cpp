@@ -61,6 +61,7 @@ int main()
         auto p = new test();
         delete p;
     }
+
     cout << clock() - t << endl;
 
     t = clock();

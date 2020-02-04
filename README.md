@@ -5,4 +5,4 @@
 2. 线程池&内存池  
 3. Select&Poll IO模型  
 4. Epoll&Boost Async IO模型  
-5. Nginx&ZeroMQ分布式架构  
+5. ZeroMQ分离业务与数据  

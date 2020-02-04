@@ -27,10 +27,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     context = zmq_ctx_new();
     sock = zmq_socket(context,ZMQ_REQ);
+    //zmq_connect(sock,"tcp://47.75.207.201:27017");
     zmq_connect(sock,"tcp://127.0.0.1:27017");
 
     connect(&t,SIGNAL(timeout()),SLOT(syncStatus()));
-    t.setInterval(200);
+    t.setInterval(1000);
     t.start();
 }
 
@@ -75,7 +76,6 @@ void MainWindow::syncStatus() {
     for(auto it=retJson.begin();it != retJson.end();it++) {
         auto id = it.key().asString();
         auto steps = (*it).asInt();
-        std::cout << id << std::endl;
         vec3 pos(3);
 
         auto runner = runners.find(id.data());

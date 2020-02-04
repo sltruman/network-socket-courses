@@ -37,7 +37,7 @@ namespace of_asio {
 
             reply = [=] {
                 string res(64,'\0');
-                if(-1 == zmq_recv(sock,const_cast<char*>(res.data()),res.size(),ZMQ_DONTWAIT))
+                if(-1 == zmq_recv(sock,const_cast<char*>(res.data()),res.size(),ZMQ_DONTWAIT) && errno == EAGAIN)
                     fd.get_io_service().post(reply);
             };
 
@@ -61,8 +61,8 @@ namespace of_asio {
                     fd.get_io_service().post([=]{
                         boost::format fmt(R"({ "type":"set", "id":"%s", "value":%d })");
                         fmt = fmt % req.id % req.steps;
-                        zmq_send(sock,fmt.str().data(),fmt.str().size(),ZMQ_DONTWAIT);
-                        fd.get_io_service().post(reply);
+                        if(0 < zmq_send(sock,fmt.str().data(),fmt.str().size(),0))
+                            fd.get_io_service().post(reply);
                     });
                     break;
                 }

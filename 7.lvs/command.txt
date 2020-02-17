@@ -1,0 +1,10 @@
+查看IP地址：ip addr
+增加一个虚拟IP：ip addr add <地址/掩码数> dev <网卡>
+增加一个虚拟IP：ip addr del <地址/掩码数> dev <网卡>
+
+查看是否安装LVS：modls | grep ip_vs
+安装管理工具：yum install ipvsadm
+查看分流： ipvsadm --list --numeric
+查看数据：ipvsadm --list --stats
+添加一个分流服务：ipvsadm --add-service --tcp-service <本机地址:端口> --scheduler rr
+添加一个分流服务器：ipvsadm --add-server --tcp-service <本机地址:端口> --real-service <分流地址:端口> --masquerading

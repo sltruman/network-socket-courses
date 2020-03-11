@@ -1,0 +1,43 @@
+﻿<html>
+
+<head>
+    <script src="js/socket.io.dev.js"></script>
+    <script src="js/index.js"></script>
+</head>
+
+<body style="display: flex;justify-content:center;">
+    <div style="border:1px solid red;">
+        <div>
+            本地ID：<label class="localId">1</label>
+        </div>
+        <div>
+            <label>远程ID：</label>
+            <input class="remoteID" type="text">
+        </div>
+        <div style="display: flex;">
+            <hr>
+            <input class="connect" type="button" value="连接" style="flex-grow:1;">
+        </div>
+        <div>
+            状态：<label class="status"></label>
+        </div>
+        <div>
+            <label>消息记录：</label>
+        </div>
+        <div style="display: flex;  flex-flow: column;">
+            <textarea class="msgList" style="height:200pt;"></textarea>
+            <hr>
+        </div>
+        <div style="display: flex;">
+            <input class="msg" type="text" style="flex-grow:1;">
+            <input class="send" type="button" value="send">
+        </div>
+        <div>
+            <hr>
+            <input class="close" type="button" value="断开" disabled="true" style="width:100%;">
+        </div>
+    </div>
+    </div>
+</body>
+
+</html>

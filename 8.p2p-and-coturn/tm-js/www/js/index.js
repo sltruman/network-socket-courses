@@ -50,7 +50,7 @@ window.onload = () => {
 
     var student = async () => {
         if (socket) socket.close()
-        socket = io('http://localhost:8000')
+        socket = io('http://dungbeetles.xyz:8000')
 
         if (connection) connection.close()
 
@@ -91,7 +91,7 @@ window.onload = () => {
 
     var teacher = async () => {
         if (socket) socket.close()
-        socket = io('http://localhost:8000')
+        socket = io('http://dungbeetles:8000')
         if (connection) connection.close()
         connection = new RTCPeerConnection(servers)
         console.log('teacher')

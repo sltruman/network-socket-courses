@@ -7,9 +7,10 @@
 4. Epoll&Boost Async IO模型  
 5. ZeroMQ分离业务与数据  
 6. Nginx分布式架构  
-7. LVS高并发架构-基本使用
+7. LVS高并发架构-基本使用  
 8. P2P&Coturn  
-9. 网络协议栈,IP,TCP,ARP  
+9. v2ray翻墙服务端搭建与不同平台下的客户端  
+10. 网络协议栈,IP,TCP,ARP,ICMP  
 9. Linux内核编译  
 9. LVS高并发架构-服务器内网集群  
 9. LVS高并发架构-NAT模式  

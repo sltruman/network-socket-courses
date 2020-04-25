@@ -104,24 +104,29 @@ void arping(string dev,string destination) {
         ether_arp a;
     } res;
 
-    do {
-        cout << "recv num:" << recv(fd,&res,sizeof(res),0) << endl;
-        cout << "recv:" << strerror(errno) << endl;
 
-        stringstream eth_destination_mac,arp_destination_mac;
-        for(auto c : res.e.ether_dhost) eth_destination_mac << hex << setfill('0') << setw(2) << (0xff & c);
-        if(source_mac.str() != eth_destination_mac.str()) continue;
+BEGIN:
+    cout << "recv num:" << recv(fd,&res,sizeof(res),0) << endl;
+    cout << "recv:" << strerror(errno) << endl;
 
-        for(auto c : res.a.arp_sha) arp_destination_mac << hex << setfill('0') << setw(2) << (0xff & c);
-        cout << "destination mac:" << arp_destination_mac.str() << endl;
-    } while('q' != getchar());
+    stringstream eth_destination_mac,arp_destination_mac;
+    for(auto c : res.e.ether_dhost) eth_destination_mac << hex << setfill('0') << setw(2) << (0xff & c);
+    if(source_mac.str() != eth_destination_mac.str()) goto BEGIN;
+
+    for(auto c : res.a.arp_sha) arp_destination_mac << hex << setfill('0') << setw(2) << (0xff & c);
+    cout << "destination mac:" << arp_destination_mac.str() << endl;
 
     close(fd);
     return;
 }
 
-int main()
+int main(int argc,char* argv[])
 {
-    arping("enp3s0","192.168.1.197");
+    if(argc != 3) {
+        cout << "program <device> <destination ip>" << endl;
+    } else {
+        arping(argv[1],argv[2]);
+    }
+    
     return 0;
 }

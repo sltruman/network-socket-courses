@@ -1,0 +1,8 @@
+//下载安装脚本
+https://install.direct/go.sh
+
+//安装
+go.sh
+
+//开启服务
+systemctl start v2ray

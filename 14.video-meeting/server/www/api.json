@@ -1,0 +1,140 @@
+描述：创建一个房间
+地址：/newRoom
+类型：HTTP GET
+输入：无
+输出：{
+    "err": null, //错误描述
+    "val": "ab3456" //房间编号
+}
+
+描述：加入一个房间
+地址：/joinRoom
+类型：HTTP GET
+输入：{
+    "roomId": "ab3456", //房间编号
+    "nickname": "张三" //在房间里的昵称
+}
+输出：{
+    "err": null, //错误描述
+    "val": { //用户所属的通道服务地址
+        "server": { //服务端连接地址
+            "address": "dungbeetles.xyz:8001"
+        },
+    }
+}
+
+描述：更新推送者编号
+地址：/updateProducerId
+类型：HTTP GET
+输入：{
+    "producerId": "123", //推送者编号
+}
+输出：{
+    "err": null, //错误描述
+    "val": true  //成功
+}
+
+描述：查询房间的所有用户信息
+地址：/queryRoom
+类型：HTTP GET
+输入：{
+    "roomId": "ab3456", //房间编号
+}
+输出：{
+    "err": null, //错误描述
+    "val": { //用户通道信息
+        "zhangsan": { //用户编号
+            "nickname": "张三", //用户昵称
+            "server": { //用户通道地址
+                "address": "dungbeetles.xyz:8001"
+            },
+            "producerId": 0, //用户推送编号
+        },
+        "lisi": {
+            "nickname": "李四",
+            "server": {
+                "address": "dungbeetles.xyz:8002"
+            },
+            "producerId": 0,
+        }
+    }
+}
+
+描述：退出房间
+地址：/quitRoom
+类型：HTTP GET
+输入：{
+    "roomId": "123", //房间编号
+}
+输出：{
+    "err": null, //错误描述
+    "val": true  //成功
+}
+
+描述：传送能力
+地址：/rtpCapabilities
+类型：HTTP GET
+输入：无
+输出：{
+    "err": null, //错误描述
+    "val": {     //服务端传送能力
+        "codecs":[...],     //支持的媒体与RTX编码
+        "headerExtensions":[...] //支持的RTP头拓展
+    }  
+}
+
+
+描述：新传送通道
+地址：/newTransport
+类型：HTTP GET
+输入：无
+输出：{
+    "err": null, //错误描述
+    "val": { //通道信息
+        "id": "a123456789", //通道编号
+        "iceParameters": {...}, //ICE信息
+        "iceCandidates": [...], //ICE信息
+        "dtlsParameters": {...} //DTLS参数
+    }
+}
+
+描述：连接传送通道
+地址：/connectTransport
+类型：HTTP GET
+输入：{
+    "transportId":"a123456789", //通道编号
+    "dtlsParameters":{...},  //DTLS参数
+}
+输出：{
+    "err": null, //错误描述
+    "val": true //成功
+}
+
+描述：推送媒体流
+地址：/produce
+类型：HTTP GET
+输入：{
+    "transportId":"a123456789", //通道编号
+    "kind":"video", //视频：video，音频：audio
+}
+输出：{
+    "err": null, //错误描述
+    "val": "producer:123456" //推送编号
+}
+
+描述：拉取媒体流
+地址：/consume
+类型：HTTP GET
+输入：{
+    "transportId":"a123456789", //通道编号
+    "kind":"video", //视频：video，音频：audio
+    "rtpCapabilities":{...} //客户端rtp能力
+}
+输出：{
+    "err": null, //错误描述
+    "val": {
+        "id": "consume:123456", //拉取编号
+        "kind": "video",//视频：video，音频：audio
+        "rtpParameters": {...}, //客户端rtp参数
+    } 
+}

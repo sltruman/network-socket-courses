@@ -18,13 +18,16 @@ int main(int argv,char* argc[])
     io_service ios;
     udp::endpoint self(udp::v4(),id);
     udp::socket client(ios,self);
+    
     struct msg {
-        unsigned short type;//0:req 1:text
-        unsigned short id;
-        unsigned short peer_id;
-        unsigned char out_peer_address[16];
-        unsigned short out_peer_port;
-        char out_peer_text[32];
+        unsigned short type;//0:查询 1:发送消息
+        unsigned short id;  //我的名字
+        unsigned short peer_id; //对方的名字
+
+        unsigned char out_peer_address[16];  //对方的IP地址
+        unsigned short out_peer_port;        //对方的端口
+
+        char out_peer_text[32];              //对方发送过来的消息
     };
 
     auto t = thread([&]() {
@@ -40,7 +43,7 @@ int main(int argv,char* argc[])
         msg res_peer;
         client.receive_from(buffer(&res_peer,sizeof(res_peer)),ep);
         switch(res_peer.type) {
-        case 0:{
+        case 0:{ //查询响应包
             if(string((char*)res_peer.out_peer_address).empty()) break;
             udp::endpoint peer(ip::address_v4::from_string((char*)res_peer.out_peer_address),res_peer.out_peer_port);
 

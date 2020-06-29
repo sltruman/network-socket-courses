@@ -1,5 +1,5 @@
 window.onload = () => {
-    var servers = {
+    var servers = { //设置P2P服务器地址
         "iceServers": [{
             "urls": ["stun:dungbeetles.xyz"]
         }, {
@@ -17,7 +17,7 @@ window.onload = () => {
     function initChannelCallback(channel) {
         console.log('initChannelCallback')
 
-        channel.onopen = async () => {
+        channel.onopen = async () => {//把耳机接口插入手机
             console.log('open')
             document.querySelector('.status').innerHTML = '通道已建立，开始通讯！'
             document.querySelector('.connect').disabled = true
@@ -34,7 +34,7 @@ window.onload = () => {
             setTimeout(alive, 1000)
         }
 
-        channel.onmessage = async (e) => {
+        channel.onmessage = async (e) => { //拿着耳朵放到耳机上
             console.log('msg', e.data)
             var msgList = document.querySelector('.msgList')
             msgList.value += '\n' + e.data
@@ -50,41 +50,41 @@ window.onload = () => {
 
     var student = async () => {
         if (socket) socket.close()
-        socket = io('http://dungbeetles.xyz:8000')
+        socket = io('http://dungbeetles.xyz:8000') //socket.io 用于与服务端通讯
 
         if (connection) connection.close()
 
         connection = new RTCPeerConnection(servers)
         console.log('student')
 
-        socket.on('takeId', async (id) => {
+        socket.on('takeId', async (id) => { //得到用户标识
             console.log(`takeId ${id}`)
             localId = id
-            document.querySelector('.localId').innerHTML = localId
+            document.querySelector('.localId').innerHTML = localId //设置id到界面
         })
 
         var studentCandidate = null
-        connection.onicecandidate = async (e) => {
+        connection.onicecandidate = async (e) => { 
             if (e.candidate == null) {
-                socket.emit('register', offer, studentCandidate)
+                socket.emit('register', offer, studentCandidate)  //向电信公司注册电话号码+身份信息
                 console.log('studentCandidate', offer, studentCandidate)
             }
             else {
-                studentCandidate = e.candidate
+                studentCandidate = e.candidate  //收集身份信息
             }
         }
 
         if (channel) channel.close()
-        channel = connection.createDataChannel('sendDataChannel')
+        channel = connection.createDataChannel('sendDataChannel') //从口袋里拿出耳麦
         console.log('Created send data channel')
 
-        var offer = await connection.createOffer()
+        var offer = await connection.createOffer() 
         await connection.setLocalDescription(offer)
 
-        socket.on('shareScreen', async (anser, teacherCandidate) => {
-            initChannelCallback(channel)
+        socket.on('shareScreen', async (anser, teacherCandidate) => { //开始通讯
+            initChannelCallback(channel) //把嘴巴对着麦克风，耳朵带着耳机
             console.log(`teacherCandidate`, anser, teacherCandidate)
-            await connection.setRemoteDescription(anser)
+            await connection.setRemoteDescription(anser) 
             await connection.addIceCandidate(teacherCandidate)
         })
     }
@@ -93,17 +93,18 @@ window.onload = () => {
         if (socket) socket.close()
         socket = io('http://dungbeetles:8000')
         if (connection) connection.close()
-        connection = new RTCPeerConnection(servers)
+        connection = new RTCPeerConnection(servers) //拿一个电话
         console.log('teacher')
 
         if (channel) channel.close()
-        channel = connection.createDataChannel('sendDataChannel')
+        channel = connection.createDataChannel('sendDataChannel') //用嘴巴对着麦克风，用耳朵听着耳机
         console.log('Created send data channel')
 
         var teacherCandidate = null
         var anser = null
         socket.on('takeOffer', async (offer, studentCandidate) => {
             console.log('takeOffer', offer, studentCandidate)
+            
             connection.onicecandidate = async (e) => {
                 if (e.candidate == null) {
                     console.log('teacherCandidate', teacherCandidate)
@@ -116,11 +117,11 @@ window.onload = () => {
                 }
             }
 
-            await connection.setRemoteDescription(offer)
+            await connection.setRemoteDescription(offer) //拨号 
             console.log('setRemoteDesc')
-            anser = await connection.createAnswer()
+            anser = await connection.createAnswer() //创建anser，对应offer
             console.log('createAnser')
-            await connection.setLocalDescription(anser)
+            await connection.setLocalDescription(anser) //把设置自己的电话号码
         })
 
         socket.on('wrongTakeOffer', async () => {
@@ -143,7 +144,7 @@ window.onload = () => {
         await teacher()
 
         var studentId = document.querySelector('.remoteId').value
-        socket.emit('requestScreen', studentId)
+        socket.emit('requestScreen', studentId) //开始拨号
     })
 
     document.querySelector('.send').addEventListener('click', () => {

@@ -1,0 +1,44 @@
+{
+  "id": "1922457",
+  "name": "video-meeting",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "4579744",
+      "name": "switch",
+      "font_class": "switch",
+      "unicode": "e603",
+      "unicode_decimal": 58883
+    },
+    {
+      "icon_id": "70732",
+      "name": "camera",
+      "font_class": "camera",
+      "unicode": "e7b5",
+      "unicode_decimal": 59317
+    },
+    {
+      "icon_id": "310750",
+      "name": "screen",
+      "font_class": "screen",
+      "unicode": "e684",
+      "unicode_decimal": 59012
+    },
+    {
+      "icon_id": "471289",
+      "name": "icon_ microphone",
+      "font_class": "microphone",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "13296364",
+      "name": "close",
+      "font_class": "close",
+      "unicode": "e689",
+      "unicode_decimal": 59017
+    }
+  ]
+}

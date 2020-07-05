@@ -1,4 +1,7 @@
 {
+  "browser": {
+    "vue": "vue/dist/vue.common.js"
+  },
   "requires": true,
   "lockfileVersion": 1,
   "dependencies": {
@@ -3173,6 +3176,7 @@
       "resolved": "https://registry.npmjs.org/vm-browserify/-/vm-browserify-1.1.2.tgz",
       "version": "1.1.2"
     },
+    "vue": "^2.6.11",
     "wrappy": {
       "integrity": "sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=",
       "resolved": "https://registry.npmjs.org/wrappy/-/wrappy-1.0.2.tgz",

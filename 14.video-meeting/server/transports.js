@@ -7,12 +7,16 @@ const codecs = [
         mimeType: 'audio/opus',
         clockRate: 48000,
         channels: 2
-    },
-    {
+      },
+      {
         kind: 'video',
-        mimeType: 'video/VP9',
-        clockRate: 90000
-    }
+        mimeType: 'video/VP8',
+        clockRate: 90000,
+        parameters:
+          {
+            'x-google-start-bitrate': 1000
+          }
+      },
 ]
 
 var router
@@ -24,10 +28,12 @@ var transports = {
     }
 }
 
-    (async function main() {
-        var worker = await mediasoup.createWorker()
-        router = await worker.createRouter({ codecs })
-    })()
+async function main() {
+    var worker = await mediasoup.createWorker()
+    router = await worker.createRouter({ codecs })
+}
+
+main()
 
 express.get('/rtpCapabilities', async (req, res) => {
     res.send({ val: router.rtpCapabilities, err: null })

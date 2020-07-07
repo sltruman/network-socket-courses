@@ -22,7 +22,7 @@
 
 <body>
     <!-- 摄像头 -->
-    <video id="camera" class="position-absolute bg-dark w-100 h-100" autoplay></video>
+    <video id="camera" class="position-absolute bg-dark w-100 h-100" src="images/1.mp4" ></video>
 
     <div id="app" class="container-fluid">
         <!-- 顶部 -->
@@ -38,33 +38,38 @@
             <div class="col"></div>
         </div>
 
+        <!-- 中部 -->
+        <div class="container fixed-bottom">
+            <!-- 设备控制按钮 -->
+            <div class="row">
+                <div class="col text-center">
+                    <button v-on:click="microphoneSwitch()" v-bind:class="{active:microphoneActivable }"
+                        type="button"
+                        class="btn m-2 rounded-circle btn-outline-light iconfont iconmicrophone"></button>
+                    <button v-on:click="quit()" type="button"
+                        class="btn m-2 rounded-circle btn-outline-danger iconfont iconclose"></button>
+                    <button v-on:click="cameraSwitch()" v-bind:class="{active:cameraActivable }" type="button"
+                        class="btn m-2 rounded-circle btn-outline-light iconfont iconcamera"></button>
+                </div>
+            </div>
+            <div class="row pb-5"></div>
+            <div class="row pb-5"></div>
+            <div class="row pb-5"></div>
+            <div class="row pb-5"></div>
+        </div>
+        
+
         <!-- 底部 -->
-        <diV class="row">
-            <div class="col">
-                <div class="container-fluid fixed-bottom pb-5 pl-4 pr-4">
-                    <!-- 设备控制按钮 -->
-                    <div class="row pb-5">
-                        <div class="col text-center">
-                            <button v-on:click="microphoneSwitch()" v-bind:class="{active:microphoneActivable }"
-                                type="button"
-                                class="btn m-2 rounded-circle btn-outline-light iconfont iconmicrophone"></button>
-                            <button v-on:click="quit()" type="button"
-                                class="btn m-2 rounded-circle btn-outline-danger iconfont iconclose"></button>
-                            <button v-on:click="cameraSwitch()" v-bind:class="{active:cameraActivable }" type="button"
-                                class="btn m-2 rounded-circle btn-outline-light iconfont iconcamera"></button>
-                        </div>
-                    </div>
-                    <!-- 会议活动按钮 -->
-                    <div class="row pt-5" >
-                        <div class="col">
-                            <button v-on:click="createMeeting()" type="button" class="btn btn-primary btn-lg btn-block"
-                                data-toggle="modal" data-target="#modelId">创建会议</button>
-                        </div>
-                        <div class="col">
-                            <button v-on:click="joinMeeting()" type="button" class=" btn btn-primary btn-lg btn-block"
-                                data-toggle="modal" data-target="#modelId">加入会议</button>
-                        </div>
-                    </div>
+        <div class="container-fluid fixed-bottom">
+            <!-- 会议活动按钮 -->
+            <div class="row pl-4 pr-4 pb-5">
+                <div class="col">
+                    <button v-on:click="createMeeting()" type="button" class="btn btn-primary btn-lg btn-block"
+                        data-toggle="modal" data-target="#modelId">创建会议</button>
+                </div>
+                <div class="col">
+                    <button v-on:click="joinMeeting()" type="button" class=" btn btn-primary btn-lg btn-block"
+                        data-toggle="modal" data-target="#modelId">加入会议</button>
                 </div>
             </div>
         </div>

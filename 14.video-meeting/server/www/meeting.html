@@ -13,7 +13,7 @@
 
 <body>
     <!-- 主画面 -->
-    <video id="main-screen" class="position-absolute bg-dark w-100 h-100"  src="images/1.mp4"></video>
+    <video id="main-screen" class="position-absolute bg-dark w-100 h-100" src="images/1.mp4"></video>
 
     <div id="meeting" class="container-fluid">
         <!-- 顶部 -->
@@ -28,44 +28,44 @@
             <div class="col"></div>
         </div>
 
+
+        <!-- 中部 -->
+        <div class="container fixed-bottom">
+            <!-- 设备控制按钮 -->
+            <div class="row">
+                <div class="col text-center">
+                    <button v-on:click="" v-bind:class="{active:screenActivable }" type="button"
+                        class="btn m-2 rounded-circle btn-outline-light iconfont iconscreen"></button>
+                    <span class="m-3 p-3"></span>
+                    <button v-on:click="" type="button"
+                        class="btn m-2 rounded-circle btn-outline-light iconfont iconmessage"></button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col text-center">
+                    <button v-on:click="microphoneSwitch()" v-bind:class="{active:microphoneActivable }" type="button"
+                        class="btn m-2 rounded-circle btn-outline-light iconfont iconmicrophone"></button>
+                    <button v-on:click="quit()" type="button"
+                        class="btn m-2 rounded-circle btn-outline-danger iconfont iconclose"></button>
+                    <button v-on:click="cameraSwitch()" v-bind:class="{active:cameraActivable }" type="button"
+                        class="btn m-2 rounded-circle btn-outline-light iconfont iconcamera"></button>
+                </div>
+            </div>
+            <div class="row pb-5"></div>
+            <div class="row pb-5"></div>
+            <div class="row pb-5"></div>
+            <div class="row pb-5"></div>
+        </div>
+
         <!-- 底部 -->
-        <diV class="row">
-            <div class="col">
-                <div class="container-fluid fixed-bottom pl-0 pr-0">
-                    <!-- 设备控制按钮 -->
-                    <div class="row">
-                        <div class="col text-center">
-                            <button v-on:click="" v-bind:class="{active:screenActivable }" type="button"
-                                class="btn m-2 rounded-circle btn-outline-light iconfont iconscreen"></button>
-                            <span class="m-3 p-3"></span>
-                            <button v-on:click="" type="button"
-                                class="btn m-2 rounded-circle btn-outline-light iconfont iconmessage"></button>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col text-center">
-                            <button v-on:click="microphoneSwitch()" v-bind:class="{active:microphoneActivable }"
-                                type="button"
-                                class="btn m-2 rounded-circle btn-outline-light iconfont iconmicrophone"></button>
-                            <button v-on:click="quit()" type="button"
-                                class="btn m-2 rounded-circle btn-outline-danger iconfont iconclose"></button>
-                            <button v-on:click="cameraSwitch()" v-bind:class="{active:cameraActivable }" type="button"
-                                class="btn m-2 rounded-circle btn-outline-light iconfont iconcamera"></button>
-                        </div>
-                    </div>
-
-                    <!-- 参会人员列表 -->
-                    <div class="row">
-                        <div class="col">
-                            <div class="d-inline-block overflow-auto text-nowrap">
-                                <video class="w-25" src="images/1.mp4"></video>
-                                <video class="w-25" src="images/1.mp4"></video>
-                                <video class="w-25" src="images/1.mp4"></video>
-                                <video class="w-25" src="images/1.mp4"></video>
-                            </div>
-                        </div>
-                    </div>
+        <div class="container-fluid fixed-bottom">
+            <div class="row">
+                <div class="col d-inline-block overflow-auto text-nowrap ">
+                    <video class="" style="width: 24%;" src="images/1.mp4"></video>
+                    <video class="" style="width: 24%;" src="images/1.mp4"></video>
+                    <video class="" style="width: 24%;" src="images/1.mp4"></video>
+                    <video class="" style="width: 24%;" src="images/1.mp4"></video>
                 </div>
             </div>
         </div>

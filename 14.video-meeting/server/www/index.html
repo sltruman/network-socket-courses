@@ -22,7 +22,7 @@
 
 <body>
     <!-- 摄像头 -->
-    <video id="camera" class="position-absolute bg-dark w-100 h-100" src="images/1.mp4" ></video>
+    <video id="camera" class="position-absolute bg-dark w-100 h-100" autoplay></video>
 
     <div id="app" class="container-fluid">
         <!-- 顶部 -->
@@ -68,7 +68,7 @@
                         data-toggle="modal" data-target="#modelId">创建会议</button>
                 </div>
                 <div class="col">
-                    <button v-on:click="joinMeeting()" type="button" class=" btn btn-primary btn-lg btn-block"
+                    <button type="button" class=" btn btn-primary btn-lg btn-block"
                         data-toggle="modal" data-target="#modelId">加入会议</button>
                 </div>
             </div>

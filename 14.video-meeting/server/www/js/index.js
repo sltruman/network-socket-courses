@@ -4,8 +4,7 @@ const axios = require('axios')
 var vueApp = new Vue({
   el: '#app',
   data: {
-    nickname: '',
-    roomId: '',
+    nickname: '张三',
     microphoneActivable: false,
     cameraActivable: true,
   },
@@ -22,35 +21,18 @@ var vueApp = new Vue({
     quit: function () {
       if (!confirm("确定退出吗？"))
         return
-
     },
     createMeeting: async function () {
-      return
-      const res = await axios.get('http://localhost:8000/newRoom')
+      var res = await axios.get('https://dungbeetles.xyz:8000/newRoom')
+
       var ret = res.data
       if (ret.err) {
         console.error(ret.err)
         return
       }
 
-      var roomId = ret.val
-      console.log('房间号：' + roomId)
-
-      res = await axios.get('http://localhost:8000/joinRoom', {
-        params: { roomId: roomId, nickname: '张三' }
-      })
-
-      if (ret.err) {
-        console.error(ret.err)
-        return
-      }
-
-      var server = res.data.val
-      console.log('服务端：' + server)
-    },
-    joinMeeting: async function () {
-
-    },
+      vueEnterRoom.roomId = ret.val
+    }
   }
 })
 
@@ -61,7 +43,18 @@ var vueEnterRoom = new Vue({
   },
   methods: {
     enterRoom: async function () {
-      alert('ss')
+      var res = await axios.get('https://dungbeetles.xyz:8000/joinRoom', {
+        params: { roomId: this.roomId, nickname: vueApp.nickname }
+      })
+
+      var ret = res.data
+
+      if (ret.err) {
+        console.error(ret.err)
+        return
+      }
+
+      window.localStorage.setItem('server', ret.val.server)
       window.location.href = '/meeting.html'
     }
   }
@@ -69,12 +62,14 @@ var vueEnterRoom = new Vue({
 
 async function testDevice() {
   var stream = null
+  var camera = document.querySelector('#camera')
+
   if (vueApp.cameraActivable || vueApp.microphoneActivable) {
     stream = await navigator.mediaDevices.getUserMedia({ video: vueApp.cameraActivable, audio: vueApp.microphoneActivable })
-    document.querySelector('#camera').srcObject = await stream
+    camera.srcObject = await stream
   } else {
-    document.querySelector('#camera').stop()
+    camera.srcObject = null
   }
 }
 
-// testDevice()
+testDevice()

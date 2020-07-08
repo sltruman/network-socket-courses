@@ -1,7 +1,17 @@
 const Express = require('express')
+const https = require('https');
 const session = require('express-session');
 const cookie = require('cookie-parser');
+const fs = require('fs');
 const express = Express()
+
+//同步读取密钥和签名证书
+var options = {
+    key: fs.readFileSync('./certs/ca.key'),
+    cert: fs.readFileSync('./certs/ca.crt')
+}
+
+var web = https.createServer(options,express);
 
 express.use(cookie())
 express.use(session({
@@ -31,6 +41,8 @@ express.get('/newRoom', async (req, res) => {
     rooms[newRoomId] = {}
     res.send({ val: newRoomId, err: null })
     newRoomId++
+
+    console.log(rooms)
 })
 
 express.get('/joinRoom', async (req, res) => {
@@ -38,16 +50,18 @@ express.get('/joinRoom', async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', req.headers.origin ? req.headers.origin : '*')
 
     var room = rooms[req.query.roomId]
+
     if (room == undefined) {
         res.send({ val: null, err: 'room was not found!' })
         return
     }
-    
+
     serverIndex = ++serverIndex == servers.length ? 0 : serverIndex
     var userDetail = { nickname: req.query.nickname, server: servers[serverIndex], activeTime: new Date() }
 
     rooms[req.query.roomId][req.sessionID] = userDetail
     res.send({ val: userDetail, err: null })
+    console.log(rooms[req.query.roomId])
 })
 
 express.get('/updateProducerId', async (req, res) => {
@@ -102,6 +116,7 @@ express.get('/quitRoom', async (req, res) => {
 
     delete rooms[req.query.roomId][req.sessionID]
     res.send({ val: true, err: null })
+    console.log(rooms[req.query.roomId])
 })
 
 //资源清理程序
@@ -114,7 +129,7 @@ setInterval(() => {
             var lastTime = user.activeTime
             var offsetTime = new Date(currentTime - lastTime)
 
-            if (offsetTime.getMinutes() > -1) { //超过一分钟
+            if (offsetTime.getMinutes() > 0) { //超过一分钟
                 console.log('退出房间：' + userId + ' ' + JSON.stringify(user))
                 delete room[userId]
             }
@@ -122,7 +137,4 @@ setInterval(() => {
     }
 }, 2000)
 
-express.listen(8000)
-console.log('http://localhost:8000/newRoom')
-console.log('http://localhost:8000/joinRoom?roomId=0&nickname=zhangsan')
-console.log('http://localhost:8000/queryRoom?roomId=0&userId=0')
+web.listen(8000)

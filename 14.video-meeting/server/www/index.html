@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"
         integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <link rel="stylesheet" href="css/iconfont.css">
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_1922457_pscxtd242iq.css">
     <style>
         .form-control {
             border-top: 0px;
@@ -22,163 +22,73 @@
 
 <body>
     <!-- 摄像头 -->
-    <video id="primary" class="position-absolute bg-dark w-100 h-100" autoplay></video>
+    <video id="primary" class="position-absolute bg-dark w-100 h-100" muted autoplay></video>
 
     <div id="app" class="container-fluid">
         <!-- 顶部 -->
         <div class="row pt-2">
+            <div class="col-4 p-0">
+                <button type="button"
+                    class="btn rounded-circle border-0 btn-outline-light iconfont iconswitch"></button>
+            </div>
             <div class="col">
-                <!-- <button type="button"
-                    class="btn rounded-circle border-0 btn-outline-light iconfont iconswitch"></button> -->
-            </div>
-            <div class="col-4">
-                <!-- 会议标题 -->
-                <template v-if="isMeeting">
-                </template>
-
                 <!-- 输入框 -->
-                <template v-else>
-                    <input id="nickname" v-bind:value="nickname" type="text"
-                        class="form-control text-white bg-transparent text-center" placeholder="昵称">
-                </template>
+                <input id="nickname" v-model="nickname" type="text"
+                    class="form-control text-white bg-transparent text-center" placeholder="nickname">
             </div>
-            <div class="col"></div>
+            <div class="col-4"></div>
         </div>
 
-
-        <!-- 会议中-中部 -->
-        <template v-if="isMeeting">
-            <div class="container fixed-bottom">
-                <!-- 桌面共享，消息控制按钮 -->
-                <div class="row">
-                    <div class="col text-center">
-                        <button v-on:click="screenSwitch()" v-bind:class="{active:screenActivable }" type="button"
-                            class="btn m-2 rounded-circle btn-outline-light iconfont iconscreen"></button>
-                        <span class="m-3 p-3"></span>
-                        <button v-on:click="messageSwitch()" type="button"
-                            class="btn m-2 rounded-circle btn-outline-light iconfont iconmessage"></button>
-                    </div>
-                </div>
-
-                <!-- 麦克风，相机控制按钮 -->
-                <div class="row">
-                    <div class="col text-center">
-                        <button v-on:click="microphoneSwitch()" v-bind:class="{ active:microphoneActivable }"
-                            type="button"
-                            class="btn m-2 rounded-circle btn-outline-light iconfont iconmicrophone"></button>
-                        <button v-on:click="quit()" type="button"
-                            class="btn m-2 rounded-circle btn-outline-danger iconfont iconclose"></button>
-                        <button v-on:click="cameraSwitch()" v-bind:class="{ active:cameraActivable }" type="button"
-                            class="btn m-2 rounded-circle btn-outline-light iconfont iconcamera"></button>
-                    </div>
-                </div>
-                <div class="row pb-5"></div>
-                <div class="row pb-5"></div>
-                <div class="row pb-5"></div>
-                <div class="row pb-5"></div>
-            </div>
-        </template>
-
         <!-- 中部 -->
-        <template v-else>
-            <div class="container fixed-bottom">
-                <!-- 麦克风，相机控制按钮 -->
-                <div class="row">
-                    <div class="col text-center">
-                        <button v-on:click="microphoneTestSwitch()" v-bind:class="{ active:microphoneTestActivable }"
-                            type="button"
-                            class="btn m-2 rounded-circle btn-outline-light iconfont iconmicrophone"></button>
-                        <button v-on:click="quit()" type="button"
-                            class="btn m-2 rounded-circle btn-outline-danger iconfont iconclose"></button>
-                        <button v-on:click="cameraTestSwitch()" v-bind:class="{ active:cameraTestActivable }"
-                            type="button" class="btn m-2 rounded-circle btn-outline-light iconfont iconcamera"></button>
-                    </div>
+        <div class="container fixed-bottom">
+            <!-- 麦克风，相机控制按钮 -->
+            <div class="row">
+                <div class="col text-center">
+                    <button v-on:click="quitMeeting()" type="button"
+                        class="btn m-2 rounded-circle btn-outline-danger iconfont iconclose"></button>
                 </div>
-
-                <div class="row pb-5"></div>
-                <div class="row pb-5"></div>
-                <div class="row pb-5"></div>
-                <div class="row pb-5"></div>
             </div>
-        </template>
+
+            <div class="row pb-5"></div>
+            <div class="row pb-5"></div>
+            <div class="row pb-5"></div>
+            <div class="row pb-5"></div>
+        </div>
 
         <!-- 底部 -->
         <div class="container-fluid fixed-bottom">
-            <!-- 参会人列表画面 -->
-            <template v-if="isMeeting">
-                <div class="row">
-                    <div class="col d-inline-flex overflow-auto flex-nowrap ">
-                        <video v-for="o of users" ref="o.userId" v-if="!o.primary" muted="o.muted"
-                            :id="'video-'+o.userId" :key="o.userId" width="24%" poster="images/user.png" autoplay>
-                        </video>
-                    </div>
-                </div>
-            </template>
-
             <!-- 会议活动按钮 -->
-            <template v-else>
-                <div class="row pl-4 pr-4 pb-5">
-                    <div class="col">
-                        <button v-on:click="newMeeting()" type="button" class="btn btn-primary btn-lg btn-block"
-                            data-target="#enterRoom">new</button>
-                    </div>
-                    <div class="col">
-                        <button v-on:click="joinMeeting()" type="button" class=" btn btn-primary btn-lg btn-block"
-                            data-target="#enterRoom">join</button>
-                    </div>
+            <div class="row pl-4 pr-4 pb-5">
+                <div class="col">
+                    <button v-on:click="newMeeting()" type="button" class="btn btn-primary btn-block"
+                        data-target="#room" data-toggle="modal">New</button>
                 </div>
-            </template>
+                <div class="col">
+                    <button v-on:click="joinMeeting()" type="button" class="btn btn-primary btn-block"
+                        data-target="#room" data-toggle="modal">Join</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- 对话框 -->
-    <div class="modal fade" id="enterRoom" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
-        aria-hidden="true">
+    <div class="modal fade" id="room" tabindex="-1" role="dialog">
 
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content bg-dark">
                 <div class="modal-header border-0">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
                 </div>
 
                 <div class="modal-body">
                     <div class="form-group">
-                        <input v-model="roomId" type="text" class="form-control text-center" aria-describedby="helpId"
-                            placeholder="room password">
+                        <input id="room-id" v-model="roomId" type="text"
+                            class="form-control text-center bg-dark text-white" placeholder="password">
                     </div>
                 </div>
 
                 <div class="modal-footer border-0 justify-content-center">
-                    <button v-on:click="enterRoom()" type="button" class="btn btn-primary">enter</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 对话框 -->
-    <div class="modal fade" id="messageDialog" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
-        aria-hidden="true">
-
-        <div id="enterRoom" class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-
-                <div class="modal-body ">
-                    <div class="form-group">
-                        <input v-bind:value="message" type="text" class="form-control text-center"
-                            aria-describedby="helpId" placeholder="你想说？">
-                    </div>
-                </div>
-
-                <div class="modal-footer border-0 justify-content-center">
-                    <button v-on:click="sendMessage()" type="button" class="btn btn-primary"
-                        data-dismiss="modal">send</button>
+                    <button v-on:click="enterRoom()" type="button" class="btn btn-primary">Enter</button>
                 </div>
             </div>
         </div>

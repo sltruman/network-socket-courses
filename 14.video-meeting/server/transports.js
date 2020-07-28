@@ -23,6 +23,40 @@ const mediaCodecs = [
         {
             'x-google-start-bitrate': 1000
         }
+    },
+    {
+        kind: 'video',
+        mimeType: 'video/VP9',
+        clockRate: 90000,
+        parameters:
+        {
+            'profile-id': 2,
+            'x-google-start-bitrate': 1000
+        }
+    },
+    {
+        kind: 'video',
+        mimeType: 'video/h264',
+        clockRate: 90000,
+        parameters:
+        {
+            'packetization-mode': 1,
+            'profile-level-id': '4d0032',
+            'level-asymmetry-allowed': 1,
+            'x-google-start-bitrate': 1000
+        }
+    },
+    {
+        kind: 'video',
+        mimeType: 'video/h264',
+        clockRate: 90000,
+        parameters:
+        {
+            'packetization-mode': 1,
+            'profile-level-id': '42e01f',
+            'level-asymmetry-allowed': 1,
+            'x-google-start-bitrate': 1000
+        }
     }
 ]
 
@@ -42,7 +76,12 @@ async function main() {
 main()
 
 io.on('connection', async sock => {
-    console.log('new:', sock.id)
+    sock.on('authorize', (req, res) => {
+        sock.id = req.userId
+        console.log('new:', sock.id)
+        res({ val: true, err: null })
+    })
+
     sock.on('disconnect', () => {
         console.log('disconnect:', sock.id)
     })
@@ -53,7 +92,11 @@ io.on('connection', async sock => {
 
     sock.on('newTransport', async (req, res) => {
         var transport = await router.createWebRtcTransport({
-            listenIps: [{ ip: '172.21.157.67', announcedIp: '47.88.154.176' }]
+            listenIps: [{ ip: '172.21.157.67', announcedIp: '47.88.154.176' }],
+            initialAvailableOutgoingBitrate: 1000000,
+            minimumAvailableOutgoingBitrate: 600000,
+            maxSctpMessageSize: 262144,
+            maxIncomingBitrate: 1500000
         })
 
         var user = {}
@@ -115,7 +158,7 @@ io.on('connection', async sock => {
 
         var consumer = await transport.consume({ producerId: req.producerId, rtpCapabilities: req.rtpCapabilities })
 
-        res({ 
+        res({
             val: {
                 id: consumer.id,
                 kind: consumer.kind,

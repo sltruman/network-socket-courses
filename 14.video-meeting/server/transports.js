@@ -77,13 +77,13 @@ main()
 
 io.on('connection', async sock => {
     sock.on('authorize', (req, res) => {
-        sock.id = req.userId
-        console.log('new:', sock.id)
+        sock.userId = req.userId
+        console.log('new:', sock.userId)
         res({ val: true, err: null })
     })
 
     sock.on('disconnect', () => {
-        console.log('disconnect:', sock.id)
+        console.log('disconnect:', sock.userId ? sock.userId : sock.id)
     })
 
     sock.on('rtpCapabilities', async (req, res) => {
@@ -101,7 +101,7 @@ io.on('connection', async sock => {
 
         var user = {}
         user[transport.id] = transport
-        users[sock.id] = user
+        users[sock.userId] = user
 
         res({
             val: {
@@ -115,7 +115,7 @@ io.on('connection', async sock => {
     })
 
     sock.on('connectTransport', async (req, res) => {
-        var user = users[sock.id]
+        var user = users[sock.userId]
         if (user == undefined) {
             res({ val: null, err: 'user was not found!' })
             return
@@ -132,7 +132,7 @@ io.on('connection', async sock => {
     })
 
     sock.on('produce', async (req, res) => {
-        var user = users[sock.id]
+        var user = users[sock.userId]
         if (user == undefined) {
             res({ val: null, err: 'user was not found!' })
             return
@@ -145,18 +145,29 @@ io.on('connection', async sock => {
         }
 
         var producer = await transport.produce({ kind: req.kind, rtpParameters: req.rtpParameters })
+
+        producer.observer.on('close', async () => {
+            console.log('on producer close:', sock.userId)
+        })
+
         res({ val: producer.id, err: null })
     })
 
     sock.on('consume', async (req, res) => {
-        var transport = users[sock.id][req.transportId]
+        let user = users[sock.userId]
+        if (user == undefined) {
+            res({ val: null, err: 'user was not found!' })
+            return
+        }
+
+        let transport = user[req.transportId]
 
         if (transport == undefined) {
             res({ val: null, err: 'transport was not found!' })
             return
         }
 
-        var consumer = await transport.consume({ producerId: req.producerId, rtpCapabilities: req.rtpCapabilities })
+        let consumer = await transport.consume({ producerId: req.producerId, rtpCapabilities: req.rtpCapabilities })
 
         res({
             val: {

@@ -5,7 +5,7 @@ let ioTransports = null
 let sendTransport = null
 let recvTransport = null
 
-this.sources = {
+let sources = {
     'producerId': null
 }
 
@@ -13,7 +13,7 @@ module.exports = new function () {
     this.connected = false
     this.connect = async (server, userId) => {
         this.connected = true
-        ioTransports= io(`https://${server}`)
+        ioTransports = io(`https://${server}`)
         ioTransports.request = require('./lib/socket.io-promise').promise(ioTransports)
         ioTransports.on('connect', async () => {
             if (!device.loaded) {         //初始化设备
@@ -41,19 +41,19 @@ module.exports = new function () {
     }
 
     this.quit = async () => {
-        if (this.sendTransport) this.sendTransport.close()
-        if (this.recvTransport) this.recvTransport.close()
-        this.ioTransports.close()
+        if (sendTransport) sendTransport.close()
+        if (recvTransport) recvTransport.close()
+        ioTransports.close()
     }
 
     this.produce = async (track) => {
-        if (!this.sendTransport) {
+        if (!sendTransport) {
             let res = await ioTransports.request(`newTransport`)
             if (res.err) {
                 return { val: null, err: 'failed to create transport at server!' }
             }
 
-            let sendTransport = device.createSendTransport(res.val)
+            sendTransport = device.createSendTransport(res.val)
             sendTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
                 let res = await ioTransports.request(`connectTransport`, {
                     transportId: sendTransport.id,
@@ -89,7 +89,8 @@ module.exports = new function () {
                         break
                     case 'failed':
                         console.log('sendTransport failed')
-                        sendTransport.close();
+                        sendTransport.close()
+                        sendTransport = null
                         break
                     default: break;
                 }
@@ -101,7 +102,6 @@ module.exports = new function () {
         sources[producer.id] = producer
         return { val: producer.id, err: null }
     }
-
 
     this.consume = async (producerId) => {
         if (!recvTransport) {
@@ -133,6 +133,7 @@ module.exports = new function () {
                     case 'failed':
                         console.log('recvTransport failed')
                         recvTransport.close()
+                        recvTransport = null
                         break;
 
                     default: break;
@@ -144,7 +145,7 @@ module.exports = new function () {
             return { val: sources[producerId].track, err: null }
         }
 
-        let res = await sock.request(`consume`, {
+        let res = await ioTransports.request(`consume`, {
             producerId: producerId,
             rtpCapabilities: device.rtpCapabilities,
             transportId: recvTransport.id
@@ -166,6 +167,9 @@ module.exports = new function () {
     }
 
     this.close = async (producerId) => {
+        console.log(producerId)
+        console.log(sources)
         sources[producerId].close()
+        delete sources[producerId]
     }
 }

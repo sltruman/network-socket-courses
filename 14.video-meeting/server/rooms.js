@@ -59,7 +59,17 @@ io.on('connection', async sock => {
         }
 
         serverIndex = ++serverIndex == servers.length ? 0 : serverIndex
-        var user = { userId: sock.userId, roomId: req.roomId, nickname: req.nickname, producer: {}, server: servers[serverIndex] }
+        var user = {
+            userId: sock.userId,
+            roomId: req.roomId,
+            nickname: req.nickname,
+            producer: {
+                video: { id: null, live: false },
+                audio: { id: null, live: false },
+                desktop: { id: null, live: false },
+            },
+            server: servers[serverIndex]
+        }
 
         sock.roomId = req.roomId
         sock.join(req.roomId, err => {

@@ -12,11 +12,12 @@
 <body>
     <!-- 摄像头 -->
     <video id="video-primary" class="position-absolute bg-dark w-100 h-100" autoplay></video>
-    <ul class="position-absolute  list-group p-0 overflow-auto text-info"
+
+    <!-- 消息列表 -->
+    <ul id="messages" ondurationchange="alert('')" onchange="alert('')"
+        class="position-absolute list-group p-0 overflow-auto text-info"
         style="left:10px;right:10px;top:60px;bottom:170px;">
-        <div class="">张三：共享了摄像头！<a href="#" class="text-danger iconfont iconeye"></a></div>
-        <div class="">王五：请问WebRTC的操作流程是哪些？</div>
-        <div class="">赵六：共享了屏幕！<a href="#" class="text-danger iconfont iconeye"></a></div>
+        <div v-for="o of rows">{{o.text}}<a v-if="o.lookAt" href="#" class="text-danger iconfont iconeye"></a></div>
     </ul>
 
     <div id="app" class="container-fluid">
@@ -28,13 +29,13 @@
             </div>
             <div class="col text-center">
                 <div style="font-size:15px;" class="text-white">
-                    房间密码：ABSCDF &nbsp; (15人)
+                    room：{{roomId}} &nbsp; ({{userCount}}人)
                 </div>
-                <div style="font-size:15px;" class="text-white">
-                    当前画面：张三
+                <div id="nickname-primary" class="text-white" style="font-size:15px;">
+                    current：
                 </div>
             </div>
-            <div class="col-2">
+            <div class="col-2 text-right">
                 <button type="button"
                     class="btn rounded-circle border-0 btn-outline-light bg-transparent text-white iconfont iconvolume"></button>
             </div>
@@ -72,14 +73,20 @@
 
         <!-- 底部 -->
         <div class="container-fluid fixed-bottom m-0 p-0">
-            <!-- 参会人列表画面 -->
+            <!-- 参会人列表 -->
             <div class="row">
                 <div class="col d-inline-flex overflow-auto flex-nowrap ">
+                    <!-- 参会人画面 -->
                     <div class="border border-white rounded p-0 mb-1 bg-dark position-relative" height="150px"
-                        width="84.375px" v-for="o of users" ref="o.userId" muted="o.muted" :id="'video-'+o.userId"
-                        :key="o.userId">
+                        width="84.375px" v-for="o of users" ref="o.userId" muted="o.muted" :key="o.userId">
+                        <!-- 昵称 -->
                         <label style="left:2px;" class="position-absolute text-white">{{o.nickname}}</label>
-                        <video class="" height="150px" width="84.375px" poster="images/user.png" autoplay></video>
+
+                        <!-- 视频 -->
+                        <video :id="'video-'+o.userId" v-on:click="primarySwitch(o.userId)" height="150px"
+                            width="84.375px" poster="images/user.png" autoplay></video>
+
+                        <!-- 静音 -->
                         <button style="bottom:0px;right:0px;"
                             class="position-absolute btn btn-sm rounded-circle border-0 btn-outline-light bg-transparent text-white iconfont iconvolume"
                             type="button"></button>

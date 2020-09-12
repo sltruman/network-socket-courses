@@ -1,18 +1,22 @@
-描述：创建一个房间
-地址：/newRoom
-类型：HTTP GET
-输入：无
+描述：用于网络连接断开时，可以重用在服务端保存的用户数据
+地址：Socket.IO /authorize
+输入：{
+    "roomId": "user-id-1", //用户编号
+}
 输出：{
     "err": null, //错误描述
-    "val": "ab3456" //房间编号
+    "val": true
 }
 
 描述：加入一个房间
-地址：/joinRoom
-类型：HTTP GET
+地址：Socket.IO /joinRoom
 输入：{
     "roomId": "ab3456", //房间编号
-    "nickname": "张三" //在房间里的昵称
+    "nickname": "zhangsan", //昵称
+    "askingUsers": [ //向服务端询问用户是否在房间内，房间内触发join事件，房间外触发leave事件
+        "user-id-1",
+        "user-id-2"
+    ]
 }
 输出：{
     "err": null, //错误描述
@@ -24,12 +28,12 @@
 }
 
 描述：更新推送者编号
-地址：/updateProducerId
+地址：/produce
 类型：HTTP GET
 输入：{
-    "roomId": "ab3456", //房间编号
     "kind": "video", //媒体类型，audio，video，desktop
     "producerId": "123", //推送者编号
+    "live": true //是否正在推送
 }
 输出：{
     "err": null, //错误描述

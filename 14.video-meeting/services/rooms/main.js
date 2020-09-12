@@ -1,3 +1,5 @@
+const { servers } = require('./config')
+
 const fs = require('fs')
 
 const web = require('https').createServer({
@@ -7,10 +9,6 @@ const web = require('https').createServer({
 
 const io = require('socket.io')(web)
 
-var servers = [
-    { address: 'dungbeetles.xyz:8001' }
-]
-
 var rooms = {
     'room-id-1': {
         'user-id-1': {
@@ -18,7 +16,7 @@ var rooms = {
             nickname: '张三', server: { address: 'dungbeetles.xyz:8001' },
             producers: {
                 video: { id: '', live: true },
-                desktop: { id: '', live: true },
+                display: { id: '', live: true },
                 audio: { id: '', live: true }
             }
         }
@@ -34,28 +32,22 @@ io.on('connection', async sock => {
         let room = rooms[sock.roomId]
         if (room == undefined) return
         sock.leave(sock.roomId)
-        io.to(sock.roomId).emit('leave', room[sock.userId])
+        io.to(sock.roomId).emit('leave', { userId: sock.userId })
         delete room[sock.userId]
     })
 
     sock.on('authorize', (req, res) => {
         sock.userId = req.userId
-        console.log('new:', sock.userId)
+        console.log('connect:', sock.userId)
         res({ val: true, err: null })
-    })
-
-    sock.on('newRoom', async (req, res) => {
-        newRoomId++
-        rooms[newRoomId] = {}
-        res({ val: newRoomId, err: null })
     })
 
     sock.on('joinRoom', async (req, res) => {
         var room = rooms[req.roomId]
 
         if (room == undefined) {
-            res({ val: null, err: 'room was not found!' })
-            return
+            room = {}
+            rooms[req.roomId] = room
         }
 
         serverIndex = ++serverIndex == servers.length ? 0 : serverIndex
@@ -64,9 +56,9 @@ io.on('connection', async sock => {
             roomId: req.roomId,
             nickname: req.nickname,
             producer: {
-                video: { id: null, live: false },
-                audio: { id: null, live: false },
-                desktop: { id: null, live: false },
+                video: null,
+                audio: null,
+                display: null
             },
             server: servers[serverIndex]
         }
@@ -78,8 +70,16 @@ io.on('connection', async sock => {
                 res({ val: null, err: err })
             } else {
                 res({ val: user, err: null })
+
                 io.to(req.roomId).emit('join', user)
-                for (userId in room) sock.emit('join', room[userId])
+
+                for (userId in req.askingUsers)
+                    if (room[userId] == undefined)
+                        sock.emit('leave', { userId: sock.userId })
+
+                for (userId in room)
+                    sock.emit('join', room[userId])
+
                 room[sock.userId] = user
             }
         })
@@ -99,10 +99,10 @@ io.on('connection', async sock => {
             return
         }
 
-        user.producer[req.kind] = { id: req.producerId, live: req.live }
+        user.producer[req.kind] = req.producerId
         res({ val: true, err: null })
 
-        io.to(sock.roomId).emit('produce', user)
+        io.to(sock.roomId).emit('produce', { userId: sock.userId, kind: req.kind, producerId: req.producerId })
     })
 })
 

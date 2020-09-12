@@ -11,33 +11,34 @@
 
 <body>
     <!-- 摄像头 -->
-    <video id="video-primary" class="position-absolute bg-dark w-100 h-100" autoplay></video>
+    <video id="video-primary" class="position-absolute bg-dark w-100 h-100" muted autoplay></video>
+    <div class="position-absolute overflow-hidden ml-2 mt-5" style="height:100px;width:20px;">
+        <span id="microphoneLevel" class="d-block position-absolute bg-primary" style="left:0;right:0;bottom:0;"></span>
+    </div>
 
     <!-- 消息列表 -->
-    <ul id="messages" ondurationchange="alert('')" onchange="alert('')"
-        class="position-absolute list-group p-0 overflow-auto text-info"
+    <ul id="messages" class="position-absolute list-group p-0 overflow-auto text-success"
         style="left:10px;right:10px;top:60px;bottom:170px;">
-        <div v-for="o of rows">{{o.text}}<a v-if="o.lookAt" href="#" class="text-danger iconfont iconeye"></a></div>
+        <div v-for="text of rows">{{text}}</div>
     </ul>
 
     <div id="app" class="container-fluid">
         <!-- 顶部 -->
         <div class="row pt-2">
             <div class="col-2 p-0">
-                <button type="button"
-                    class="btn rounded-circle border-0 btn-outline-light bg-transparent text-white iconfont iconswitch"></button>
+                <!-- <button type="button"
+                    class="btn rounded-circle border-0 btn-outline-light bg-transparent text-white iconfont iconswitch"></button> -->
+                <!-- 状态信息 -->
+                <label class="text-white">{{ status }}</label>
             </div>
             <div class="col text-center">
                 <div style="font-size:15px;" class="text-white">
-                    room：{{roomId}} &nbsp; ({{userCount}}人)
+                    {{roomId}} &nbsp; ({{userCount}}人)
                 </div>
-                <div id="nickname-primary" class="text-white" style="font-size:15px;">
-                    current：
-                </div>
+                <div id="nickname-primary" class="text-white" style="font-size:15px;"></div>
             </div>
-            <div class="col-2 text-right">
-                <button type="button"
-                    class="btn rounded-circle border-0 btn-outline-light bg-transparent text-white iconfont iconvolume"></button>
+            <div class="col-2 text-right overflow-hidden">
+
             </div>
         </div>
 

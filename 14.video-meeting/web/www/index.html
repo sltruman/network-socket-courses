@@ -23,20 +23,27 @@
 <body>
     <!-- 摄像头 -->
     <video id="primary" class="position-absolute bg-dark w-100 h-100" muted autoplay></video>
+    <div class="position-absolute overflow-hidden ml-2 mt-5" style="height:100px;width:20px;">
+        <span id="microphoneLevel" class="d-block position-absolute bg-primary" style="left:0;right:0;bottom:0;"></span>
+    </div>
 
     <div id="app" class="container-fluid">
         <!-- 顶部 -->
         <div class="row pt-2">
-            <div class="col-4 p-0">
-                <button type="button"
-                    class="btn rounded-circle border-0 btn-outline-light iconfont iconswitch"></button>
+            <div class="col-2 p-0">
+                <!-- <button type="button"
+                    class="btn rounded-circle border-0 btn-outline-light iconfont iconswitch"></button> -->
+                <!-- 状态信息 -->
+                <label class="text-white">{{ status }}</label>
             </div>
             <div class="col">
                 <!-- 输入框 -->
                 <input id="nickname" v-model="nickname" type="text"
                     class="form-control text-white bg-transparent text-center" placeholder="nickname">
             </div>
-            <div class="col-4"></div>
+            <div class="col-2 text-right overflow-hidden">
+
+            </div>
         </div>
 
         <!-- 中部 -->
@@ -44,8 +51,14 @@
             <!-- 麦克风，相机控制按钮 -->
             <div class="row">
                 <div class="col text-center">
-                    <button v-on:click="quitMeeting()" type="button"
+                    <button id="microphoneSwitch" v-on:click="microphoneSwitch()" type="button"
+                        class="btn m-2 rounded-circle btn-outline-light iconfont iconmicrophone">
+
+                    </button>
+                    <button v-on:click=" quitMeeting()" type="button"
                         class="btn m-2 rounded-circle btn-outline-danger iconfont iconclose"></button>
+                    <button id="cameraSwitch" v-on:click="cameraSwitch()" type=" button"
+                        class="btn m-2 rounded-circle btn-outline-light iconfont iconcamera"></button>
                 </div>
             </div>
 

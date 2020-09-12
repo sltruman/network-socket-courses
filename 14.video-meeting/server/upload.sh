@@ -1,1 +1,0 @@
-scp rooms.js transports.js root@dungbeetles.xyz:video-meeting/

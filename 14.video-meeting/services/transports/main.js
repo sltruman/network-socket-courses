@@ -1,4 +1,4 @@
-const { listenIps, mediaCodecs } = require('./config')
+const { listenIps, mediaCodecs, listenPort } = require('./config')
 
 const mediasoup = require('mediasoup')
 const fs = require('fs')
@@ -106,4 +106,4 @@ io.on('connection', async sock => {
     })
 })
 
-web.listen(8001)
+web.listen(listenPort)

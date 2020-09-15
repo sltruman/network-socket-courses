@@ -18,7 +18,7 @@ let vueRoom = new Vue({
       if ('' == this.roomId) {
         alert('enter the room id!')
         return
-      } 
+      }
 
       $('#room').modal('hide')
       window.location.href = `/meeting.html?userId=${ioRooms.id}&roomId=${vueRoom.roomId}&nickname=${vueApp.nickname}`
@@ -42,7 +42,7 @@ var vueApp = new Vue({
         vueApp.meter.on('disconnect', (meter) => { $('#microphoneLevel')[0].style.height = '0%' })
         vueApp.meter.disconnect()
       } else {
-        vueApp.meter.listenTo(0, (dB, percent, level) => $('#microphoneLevel')[0].style.height = percent + '%').catch(err => alert(err))
+        vueApp.meter.listenTo('default', (dB, percent, level) => $('#microphoneLevel')[0].style.height = percent + '%').catch(err => alert(err))
       }
 
       $('#microphoneSwitch').toggleClass('active')

@@ -1,3 +1,5 @@
+module.exports.listenPort = 8001
+
 module.exports.listenIps = [{
     ip: '192.168.16.224', //本地局域网IP
     // announcedIp: '47.88.154.176' //如果服务器部署在公网上,则设置位公网IP

@@ -1,4 +1,4 @@
-const { servers } = require('./config')
+const { servers, listenPort } = require('./config')
 
 const fs = require('fs')
 
@@ -15,9 +15,9 @@ var rooms = {
             userId: 'user-id-1', roomId: 'room-id-1',
             nickname: '张三', server: { address: 'dungbeetles.xyz:8001' },
             producers: {
-                video: { id: '', live: true },
-                display: { id: '', live: true },
-                audio: { id: '', live: true }
+                video: 'id',
+                display: 'id',
+                audio: 'id'
             }
         }
     }
@@ -106,4 +106,4 @@ io.on('connection', async sock => {
     })
 })
 
-web.listen(8000)
+web.listen(listenPort)

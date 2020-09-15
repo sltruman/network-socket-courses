@@ -1,5 +1,6 @@
 const qs = require("querystring")
 
+//userId=sU5pRDdx_-VZ1JeLAAAc&roomId=596346&nickname=%E5%BC%A0%E4%B8%89
 const { userId, roomId, nickname } = qs.parse(window.location.search.substring(1))
 if (userId == undefined || roomId == undefined)
   window.location.href = '/index.html'
@@ -31,7 +32,7 @@ var vueApp = new Vue({
       if ($('#microphoneSwitch')[0].classList.contains('active')) {
         transports.remove(user.stream.audio)
         user.stream.removeTrack(user.stream.audio)
-        updateProducerId(null, 'video')
+        updateProducerId(null, 'audio')
       } else {
         try { //获取视频流
           let stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -166,9 +167,9 @@ function onUserJoinedEvent(req) {
   // req = {
   //   userId: 'user-id-1', roomId: 'room-id-1', nickname: '张三', server: { address: 'dungbeetles.xyz:8001' },
   //   producer: {
-  //     video: id: '',
-  //     display: id:'',
-  //     audio: id: ''
+  //     video: '',
+  //     display: '',
+  //     audio: ''
   //   },
   //   stream: null,
   //   primary: false,
